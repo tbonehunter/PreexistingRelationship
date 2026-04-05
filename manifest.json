@@ -1,0 +1,10 @@
+{
+    "Name": "Preexisting Relationship",
+    "Author": "spacechase0, updated by tbonehunter",
+    "Version": "2.0.0",
+    "Description": "Start the game already married to an NPC.",
+    "UniqueID": "spacechase0.PreexistingRelationship",
+    "EntryDll": "PreexistingRelationship.dll",
+    "MinimumApiVersion": "4.0.0",
+    "UpdateKeys": []
+}
