@@ -41,7 +41,7 @@ namespace PreexistingRelationship
 
             helper.ConsoleCommands.Add(
                 "marry",
-                "Opens the preexisting relationship spouse selection menu.",
+                "Opens the Preexisting Relationship Redux spouse selection menu.",
                 this.OnCommand);
         }
 //// <summary>
