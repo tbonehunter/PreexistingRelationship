@@ -1,8 +1,9 @@
 ﻿﻿[← back to readme](README.md)
 
-# Release notes
+# Release notes — Preexisting Relationship Redux
 ## 2.0.0
-Updated for Stardew Valley 1.6+ and SMAPI 4.0+ by tbonehunter.
+Rewritten for Stardew Valley 1.6+ and SMAPI 4.0+ by tbonehunter.  
+Renamed from *Preexisting Relationship* (originally by spacechase0) to *Preexisting Relationship Redux*.
 
 * Removed SpaceCore / SpaceShared dependency — mod is now fully standalone.
 * Rewrote marriage selection menu using vanilla IClickableMenu components.

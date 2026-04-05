@@ -1,12 +1,14 @@
-**Preexisting Relationship** is a [Stardew Valley](http://stardewvalley.net/) mod which lets you
-start the game already married to an NPC.
+**Preexisting Relationship Redux** is a [Stardew Valley](http://stardewvalley.net/) mod which lets
+you start the game already married to an NPC.
 
-Originally created by [spacechase0](https://github.com/spacechase0) under the MIT License.
-Updated for Stardew Valley 1.6+ by tbonehunter.
+This is a substantial rewrite of [**Preexisting Relationship**](https://www.nexusmods.com/stardewvalley/mods/8989)
+by [spacechase0](https://github.com/spacechase0), originally released under the MIT License.
+Rewritten for Stardew Valley 1.6+ by tbonehunter.
 
 ![](screenshot.png)
 
 ## Changes in 2.0.0
+* Rewritten and renamed from *Preexisting Relationship* to *Preexisting Relationship Redux*.
 * Updated for Stardew Valley 1.6 and SMAPI 4.0+.
 * Removed SpaceCore / SpaceShared dependency — now fully standalone.
 * Rewrote marriage selection menu using vanilla game UI components.
