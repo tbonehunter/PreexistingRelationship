@@ -11,7 +11,9 @@ using PreexistingRelationship.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.GameData;
 using StardewValley.Locations;
+using StardewValley.Triggers;
 
 namespace PreexistingRelationship
 {
@@ -58,6 +60,7 @@ namespace PreexistingRelationship
 
             // Re-run suppression daily in case overnight logic queued romance mail again.
             MarkCourtshipMailAsReceived(Game1.player, spouse.Name);
+            MarkSpouseTriggerActionsApplied(Game1.player, spouse.Name);
         }
 
         /*──────────────────────────────────────────────────────────────
@@ -183,6 +186,9 @@ namespace PreexistingRelationship
 
                 // ── Mark pre-marriage heart events as seen ──
                 MarkHeartEventsAsSeen(player, npcName);
+
+                // ── Mark pre-marriage trigger-action mail as applied ──
+                MarkSpouseTriggerActionsApplied(player, npcName);
             }
             
             // ── Load the spouse room so the correct room appears
@@ -294,6 +300,49 @@ namespace PreexistingRelationship
             {
                 player.mailbox.Remove(flag);
                 player.mailForTomorrow.Remove(flag);
+            }
+        }
+
+        /// <summary>
+        /// Mark Data/TriggerActions entries gated on the spouse's friendship/hearts
+        /// (e.g. Elliott's 8-heart book-reading invite) as already applied, since
+        /// those fire independently of mailReceived/mailbox flags.
+        /// </summary>
+        private static void MarkSpouseTriggerActionsApplied(Farmer player, string npcName)
+        {
+            List<TriggerActionData> triggerActions;
+            try
+            {
+                triggerActions = Game1.content.Load<List<TriggerActionData>>("Data\\TriggerActions");
+            }
+            catch
+            {
+                return;
+            }
+
+            var npcCheck = new Regex(
+                $@"Current\s+{Regex.Escape(npcName)}(\s|$)", RegexOptions.IgnoreCase);
+
+            foreach (var entry in triggerActions)
+            {
+                if (string.IsNullOrWhiteSpace(entry.Condition) || string.IsNullOrWhiteSpace(entry.Id))
+                    continue;
+                if (!npcCheck.IsMatch(entry.Condition))
+                    continue;
+
+                string action = $"MarkActionApplied Current {entry.Id}";
+                if (TriggerActionManager.TryRunAction(action, out string error, out Exception ex))
+                {
+                    Instance.Monitor.Log(
+                        $"  Marked trigger action '{entry.Id}' as applied for spouse {npcName}.",
+                        LogLevel.Trace);
+                }
+                else
+                {
+                    Instance.Monitor.Log(
+                        $"  Failed to mark trigger action '{entry.Id}' applied: {error}",
+                        LogLevel.Trace);
+                }
             }
         }
 
