@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using PreexistingRelationship.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -51,35 +52,12 @@ namespace PreexistingRelationship
         /// </summary>
         private void OnDayStarted(object sender, DayStartedEventArgs e)
         {
-            if (Game1.player.getSpouse() == null)
+            NPC spouse = Game1.player.getSpouse();
+            if (spouse == null)
                 return;
 
-            string[] courtshipMailFlags = new[]
-            {
-                "Bouquet",
-                "SeaAmulet",
-                "abbySpiritBoard",
-                "pennySpa",
-                "samMessage",
-                "joshMessage",
-                "elliottBoat",
-                "harveyBalloon",
-                "EmilyClothingTherapy",
-                "EmilyCamping",
-                "haleyGarden"
-            };
-
-            foreach (string flag in courtshipMailFlags)
-            {
-                if (Game1.player.mailbox.Remove(flag))
-                {
-                    this.Monitor.Log(
-                        $"Stripped re-queued mail '{flag}' from mailbox.", LogLevel.Trace);
-                }
-
-                if (!Game1.player.mailReceived.Contains(flag))
-                    Game1.player.mailReceived.Add(flag);
-            }
+            // Re-run suppression daily in case overnight logic queued romance mail again.
+            MarkCourtshipMailAsReceived(Game1.player, spouse.Name);
         }
 
         /*──────────────────────────────────────────────────────────────
@@ -201,11 +179,15 @@ namespace PreexistingRelationship
                 player.spouse = npcName;
 
                 // ── Mark courtship mail as already received ──
-                MarkCourtshipMailAsReceived(player);
+                MarkCourtshipMailAsReceived(player, npcName);
 
                 // ── Mark pre-marriage heart events as seen ──
                 MarkHeartEventsAsSeen(player, npcName);
             }
+            
+            // ── Load the spouse room so the correct room appears
+            //    without needing to exit and re-enter the house. ──
+            home.loadSpouseRoom();
 
             // ── Position the spouse NPC ──
             NPC spouse = Game1.getCharacterFromName(npcName);
@@ -270,14 +252,14 @@ namespace PreexistingRelationship
         /// received so the player doesn't get bouquet/pendant letters
         /// after they're already married.
         /// </summary>
-        private static void MarkCourtshipMailAsReceived(Farmer player)
+        private static void MarkCourtshipMailAsReceived(Farmer player, string npcName)
         {
             // Vanilla mail keys for dating/marriage progression:
             //   "Bouquet"                — Pierre's letter about buying a bouquet
             //   "SeaAmulet"              — Lewis's letter about the Mermaid's Pendant
             //   Remaining entries        — NPC-specific heart event invitation mail
             //                              for all vanilla candidates that use mail
-            string[] courtshipMailFlags = new[]
+            HashSet<string> courtshipMailFlags = new HashSet<string>(StringComparer.Ordinal)
             {
                 "Bouquet",
                 "SeaAmulet",
@@ -291,6 +273,11 @@ namespace PreexistingRelationship
                 "EmilyCamping",
                 "haleyGarden"
             };
+
+            // Include any relationship-gated mail in Data/Mail for this spouse
+            // so letters like Elliott's book-reading invite are suppressed too.
+            foreach (string key in GetRelationshipMailFlagsForNpc(npcName))
+                courtshipMailFlags.Add(key);
 
             foreach (string flag in courtshipMailFlags)
             {
@@ -307,6 +294,40 @@ namespace PreexistingRelationship
             {
                 player.mailbox.Remove(flag);
                 player.mailForTomorrow.Remove(flag);
+            }
+        }
+
+        /// <summary>
+        /// Find mail keys whose preconditions include spouse relationship checks
+        /// (e.g. "f Elliott 2000" or "D Elliott") so they can be suppressed
+        /// after starting married.
+        /// </summary>
+        private static IEnumerable<string> GetRelationshipMailFlagsForNpc(string npcName)
+        {
+            Dictionary<string, string> mailData;
+            try
+            {
+                mailData = Game1.content.Load<Dictionary<string, string>>("Data\\Mail");
+            }
+            catch
+            {
+                yield break;
+            }
+
+            string escapedNpcName = Regex.Escape(npcName);
+            var friendshipCheck = new Regex($@"(^|\s)f\s+{escapedNpcName}(\s|$)", RegexOptions.IgnoreCase);
+            var datingCheck = new Regex($@"(^|\s)[dD]\s+{escapedNpcName}(\s|$)", RegexOptions.IgnoreCase);
+
+            foreach (var kvp in mailData)
+            {
+                string value = kvp.Value;
+                int hashIndex = value.IndexOf('#');
+                if (hashIndex <= 0)
+                    continue;
+
+                string preconditions = value.Substring(0, hashIndex);
+                if (friendshipCheck.IsMatch(preconditions) || datingCheck.IsMatch(preconditions))
+                    yield return kvp.Key;
             }
         }
         /*──────────────────────────────────────────────────────────────
