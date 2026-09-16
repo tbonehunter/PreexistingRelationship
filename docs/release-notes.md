@@ -2,7 +2,7 @@
 
 # Release notes — Preexisting Relationship Redux
 ## 2.0.1
-* Fixed spouse relationship mail (e.g. Elliott's book-publication letter) still arriving after starting married, by scanning `Data/Mail` preconditions for the spouse instead of relying on a hardcoded list.
+* Fixed spouse relationship mail (e.g. Elliott's book-publication letter) still arriving after starting married. These letters are queued via `Data/TriggerActions` rather than `Data/Mail`, so the mod now marks the spouse's relevant trigger actions as already applied.
 
 ## 2.0.0
 Rewritten for Stardew Valley 1.6+ and SMAPI 4.0+ by tbonehunter.  
