@@ -7,6 +7,9 @@ Rewritten for Stardew Valley 1.6+ by tbonehunter.
 
 ![](screenshot.png)
 
+## Changes in 2.0.1
+* Fixed spouse relationship-gated mail (e.g. Elliott's book-publication letter) still arriving after starting already married.
+
 ## Changes in 2.0.0
 * Rewritten and renamed from *Preexisting Relationship* to *Preexisting Relationship Redux*.
 * Updated for Stardew Valley 1.6 and SMAPI 4.0+.
